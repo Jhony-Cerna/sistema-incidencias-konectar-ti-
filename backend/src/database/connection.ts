@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { env } from '../config/env';
+import { SCHEMA_SQL_DDL } from './schemaSql';
 
 let dbInstance: DatabaseSync | null = null;
 
@@ -49,8 +50,12 @@ export function getDb(): DatabaseSync {
 
   const localSchemaPath = path.resolve(__dirname, 'schema.sql');
   const srcSchemaPath = path.resolve(__dirname, '../../src/database/schema.sql');
-  const schemaPath = fs.existsSync(localSchemaPath) ? localSchemaPath : srcSchemaPath;
-  const schemaSql = fs.readFileSync(schemaPath, 'utf-8');
+  const schemaPath = fs.existsSync(localSchemaPath)
+    ? localSchemaPath
+    : fs.existsSync(srcSchemaPath)
+    ? srcSchemaPath
+    : null;
+  const schemaSql = schemaPath ? fs.readFileSync(schemaPath, 'utf-8') : SCHEMA_SQL_DDL;
   dbInstance.exec(schemaSql);
 
   return dbInstance;
